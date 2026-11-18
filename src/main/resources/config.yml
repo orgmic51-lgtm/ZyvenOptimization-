@@ -1,0 +1,34 @@
+# Zyven Optimization config. Edit in-game: /opti config set <path> <value>
+cleanup:
+  auto-clear: true
+  minutes: 5
+  clear-items: true
+  clear-mobs: false
+  clear-arrows: true
+  clear-xp-orbs: true
+  emergency: true
+  emergency-tps: 15.0
+limits:
+  chunk-entity-limits: true
+  max-items-per-chunk: 128
+  max-hostile-per-chunk: 60
+  max-entities-per-chunk: 300
+  redstone-limit: 1000
+  piston-limit: 100
+  hopper-limit: 400
+  dispenser-limit: 100
+redstone:
+  enabled: true
+  limiter: true
+lag-machines:
+  detector: true
+  auto-freeze: true
+  freeze-seconds: 300
+announcements:
+  announce-lag-machines: true
+  admins-only: true
+  show-coordinates: true
+performance:
+  adaptive-view: true
+  view-distance: 0        # 0 = take from server on first start
+  simulation-distance: 0
