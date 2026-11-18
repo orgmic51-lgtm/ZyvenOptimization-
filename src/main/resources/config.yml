@@ -26,11 +26,19 @@ lag-machines:
   detector: true
   auto-freeze: true
   freeze-seconds: 300
+  # A chunk is only flagged when ALL of this is true for sustain-seconds in a row:
+  #  - at least min-updates-per-second redstone updates in the chunk
+  #  - at least one single block flips min-toggles-per-block times per second (a fast clock)
+  # Farms spread updates over many blocks that each flip rarely, so they are not flagged.
+  min-updates-per-second: 500
+  min-toggles-per-block: 10
+  sustain-seconds: 5
+  # Chunks that are never flagged. Use /opti ignore while standing in a farm chunk.
+  ignored-chunks: []
 announcements:
   announce-lag-machines: true
   admins-only: true      # true = only players with zyven.opti.alerts get alerts, false = everyone
   sound: true            # play a sound + action bar when an alert is sent
-  show-coordinates: true
 performance:
   adaptive-view: true
   view-distance: 0        # 0 = take from server on first start
