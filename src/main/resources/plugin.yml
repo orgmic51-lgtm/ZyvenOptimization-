@@ -1,0 +1,15 @@
+name: ZyvenOptimization
+main: xyz.zyven.opti.ZyvenOpti
+version: ${project.version}
+api-version: '1.21'
+author: Zyven
+description: Zyven Opti - server optimization, lag machine detection, redstone limiter and cleanup tools.
+commands:
+  opti:
+    description: Open the Zyven Optimization menu
+    aliases: [zopti, zyvenopti, zyvenoptimization, optimization]
+    usage: /opti [menu|status|clear|config|reload]
+permissions:
+  zyven.opti.admin:
+    description: Use Zyven Opti
+    default: op
