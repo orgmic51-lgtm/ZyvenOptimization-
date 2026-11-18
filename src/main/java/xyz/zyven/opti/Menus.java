@@ -11,7 +11,7 @@ import org.bukkit.plugin.Plugin;
 import java.util.*;
 import java.util.function.Consumer;
 
-/** Chest GUI (used on 1.21 - 1.21.5): main, plugin manager, performance, cleanup, redstone, lag machines, config, advanced, help. */
+/** All GUI screens: main, plugin manager, performance, cleanup, redstone, lag machines, config, advanced, help. */
 public final class Menus implements Listener, MenuUI {
     static final class Menu implements InventoryHolder {
         final Inventory inv;
@@ -297,4 +297,4 @@ public final class Menus implements Listener, MenuUI {
     public void onDrag(InventoryDragEvent e) {
         if (e.getView().getTopInventory().getHolder() instanceof Menu) e.setCancelled(true);
     }
-                     }
+}

@@ -74,7 +74,7 @@ public final class Guard implements Listener {
         if (c.getBoolean("announcements.announce-lag-machines")) {
             String where = c.getBoolean("announcements.show-coordinates")
                     ? " <" + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + "> " + loc.getWorld().getName() : "";
-            p.announce(ChatColor.RED + "Lag machine detected: " + type + where
+            p.alert(ChatColor.RED + "Lag machine detected: " + type + where
                     + (c.getBoolean("lag-machines.auto-freeze") ? ChatColor.GRAY + " (chunk frozen)" : ""));
         }
     }
