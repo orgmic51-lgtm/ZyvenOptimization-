@@ -1,4 +1,6 @@
 # Zyven Optimization config. Edit in-game: /opti config set <path> <value>
+# menu: auto = dialog on 1.21.6+, chest on 1.21-1.21.5 (or force with "chest")
+menu: auto
 cleanup:
   auto-clear: true
   minutes: 5
