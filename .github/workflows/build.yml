@@ -1,9 +1,12 @@
-name: Build Zyven Optimization
+name: Build and Release
 
 on:
   push:
-  pull_request:
+    branches: [main, master]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -25,3 +28,13 @@ jobs:
         with:
           name: ZyvenOptimization
           path: target/ZyvenOptimization.jar
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          name: Zyven Optimization v1.0.${{ github.run_number }}
+          generate_release_notes: true
+          files: target/ZyvenOptimization.jar
+          
