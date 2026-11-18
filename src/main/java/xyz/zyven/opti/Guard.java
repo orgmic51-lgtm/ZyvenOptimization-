@@ -13,7 +13,11 @@ import java.util.*;
 public final class Guard implements Listener {
     record Key(UUID w, int x, int z) {}
 
-    static final class Stat { int count, streak; Location loc; }
+    static final class Stat {
+        int count, streak, maxBlock;
+        Location loc;
+        final Map<Long, int[]> blocks = new HashMap<>();
+    }
 
     public record LagEntry(String type, Location loc, long time) {}
 
@@ -26,6 +30,25 @@ public final class Guard implements Listener {
     int heldLastSecond = 0, heldTotal = 0, heldThisSecond = 0;
 
     Guard(ZyvenOpti p) { this.p = p; }
+
+    static String chunkId(Location l) {
+        return l.getWorld().getName() + ":" + (l.getBlockX() >> 4) + ":" + (l.getBlockZ() >> 4);
+    }
+
+    public boolean isIgnored(Location l) {
+        return p.getConfig().getStringList("lag-machines.ignored-chunks").contains(chunkId(l));
+    }
+
+    /** Toggles the chunk in the ignore list (for farms). Returns true if it is now ignored. */
+    public boolean toggleIgnore(Location l) {
+        List<String> list = new ArrayList<>(p.getConfig().getStringList("lag-machines.ignored-chunks"));
+        String id = chunkId(l);
+        boolean now = !list.remove(id);
+        if (now) list.add(id);
+        p.getConfig().set("lag-machines.ignored-chunks", list);
+        p.saveConfig();
+        return now;
+    }
 
     static Key key(Location l) { return new Key(l.getWorld().getUID(), l.getBlockX() >> 4, l.getBlockZ() >> 4); }
 
@@ -41,10 +64,16 @@ public final class Guard implements Listener {
     public void freeze(Location l, int seconds) { frozen.put(key(l), System.currentTimeMillis() + seconds * 1000L); }
     public void unfreezeAll() { frozen.clear(); }
 
-    /** Called once per second. */
+    /**
+     * Called once per second. A chunk is only reported as a lag machine when, for several seconds in a row,
+     * it has a huge number of redstone updates AND at least one single block flips very fast (a clock).
+     * Farms spread their updates over many blocks that each flip rarely, so they are not reported.
+     */
     void tick() {
         var c = p.getConfig();
-        int limit = c.getInt("limits.redstone-limit");
+        int minUpdates = c.getInt("lag-machines.min-updates-per-second", 500);
+        int minToggles = c.getInt("lag-machines.min-toggles-per-block", 10);
+        int sustain = Math.max(1, c.getInt("lag-machines.sustain-seconds", 5));
         boolean detect = c.getBoolean("lag-machines.detector");
         heldLastSecond = heldThisSecond; heldThisSecond = 0;
 
@@ -52,9 +81,11 @@ public final class Guard implements Listener {
         while (it.hasNext()) {
             var en = it.next();
             Stat s = en.getValue();
-            if (s.count > limit) s.streak++; else s.streak = 0;
-            s.count = 0;
-            if (detect && s.streak >= 3 && !isFrozen(en.getKey())) {
+            boolean hot = s.count >= minUpdates && s.maxBlock >= minToggles;
+            if (hot) s.streak++; else s.streak = 0;
+            s.count = 0; s.maxBlock = 0; s.blocks.clear();
+
+            if (detect && s.streak >= sustain && s.loc != null && !isFrozen(en.getKey()) && !isIgnored(s.loc)) {
                 long now = System.currentTimeMillis();
                 Long rep = reported.get(en.getKey());
                 if (rep == null || now - rep > 60_000) report(en.getKey(), s.loc, "REDSTONE CLOCK");
@@ -92,8 +123,10 @@ public final class Guard implements Listener {
         Key k = key(b.getLocation());
         if (isFrozen(k)) { e.setNewCurrent(e.getOldCurrent()); return; }
         Stat s = redstone.computeIfAbsent(k, x -> new Stat());
-        s.loc = b.getLocation();
         s.count++;
+        long pk = (((long) b.getX() & 0x3FFFFFFL) << 38) | (((long) b.getZ() & 0x3FFFFFFL) << 12) | ((long) b.getY() & 0xFFFL);
+        int n = ++s.blocks.computeIfAbsent(pk, x -> new int[1])[0];
+        if (n > s.maxBlock) { s.maxBlock = n; s.loc = b.getLocation(); }
         if (s.count > c.getInt("limits.redstone-limit") && c.getBoolean("redstone.limiter")) {
             e.setNewCurrent(e.getOldCurrent());
             heldThisSecond++; heldTotal++;
