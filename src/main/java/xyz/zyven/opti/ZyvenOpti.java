@@ -12,6 +12,7 @@ import java.util.*;
 public final class ZyvenOpti extends JavaPlugin {
     public static final String PREFIX = ChatColor.GREEN + "[Zyven Opti] " + ChatColor.GRAY;
     public static final String PERM = "zyven.opti.admin";
+    public static final String ALERT_PERM = "zyven.opti.alerts";
 
     Cleaner cleaner;
     Guard guard;
@@ -51,11 +52,28 @@ public final class ZyvenOpti extends JavaPlugin {
     public double tps() { return Math.min(20.0, Bukkit.getTPS()[0]); }
     public double mspt() { return Bukkit.getAverageTickTime(); }
 
+    private boolean gets(Player pl) {
+        boolean restrict = getConfig().getBoolean("announcements.admins-only", true);
+        return !restrict || pl.hasPermission(ALERT_PERM);
+    }
+
+    /** Chat message to everyone who has zyven.opti.alerts. */
     public void announce(String msg) {
-        boolean admins = getConfig().getBoolean("announcements.admins-only", true);
         for (Player pl : Bukkit.getOnlinePlayers())
-            if (!admins || pl.hasPermission(PERM)) pl.sendMessage(PREFIX + msg);
+            if (gets(pl)) pl.sendMessage(PREFIX + msg);
         getLogger().info(ChatColor.stripColor(msg));
+    }
+
+    /** Chat + action bar + sound for important problems (lag machines, emergency). */
+    public void alert(String msg) {
+        announce(msg);
+        if (!getConfig().getBoolean("announcements.sound", true)) return;
+        for (Player pl : Bukkit.getOnlinePlayers()) {
+            if (!gets(pl)) continue;
+            pl.sendActionBar(net.kyori.adventure.text.Component.text(ChatColor.stripColor(msg),
+                    net.kyori.adventure.text.format.NamedTextColor.RED));
+            pl.playSound(pl.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1f, 0.6f);
+        }
     }
 
     public void applyDistances() {
@@ -83,7 +101,7 @@ public final class ZyvenOpti extends JavaPlugin {
                 && System.currentTimeMillis() - lastEmergency > 60_000) {
             lastEmergency = System.currentTimeMillis();
             Cleaner.Result r = cleaner.clear(true, false, true, true);
-            announce(ChatColor.RED + "Emergency cleanup (TPS " + String.format("%.1f", tps()) + "): " + r.total() + " entities removed.");
+            alert(ChatColor.RED + "Emergency cleanup (TPS " + String.format("%.1f", tps()) + "): " + r.total() + " entities removed.");
         }
         if (tick % 10 == 0 && c.getBoolean("limits.chunk-entity-limits")) cleaner.enforceLimits();
         if (tick % 30 == 0) adaptive();
@@ -154,4 +172,4 @@ public final class ZyvenOpti extends JavaPlugin {
         if (a.length == 3 && a[0].equalsIgnoreCase("config")) return new ArrayList<>(getConfig().getKeys(true));
         return List.of();
     }
-                                                     }
+}
