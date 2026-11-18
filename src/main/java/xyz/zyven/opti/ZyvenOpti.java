@@ -113,6 +113,7 @@ public final class ZyvenOpti extends JavaPlugin {
                 s.sendMessage(PREFIX + String.format("TPS %.1f | MSPT %.1f | RAM %d/%d MB | Players %d | Frozen chunks %d | View reduce -%d",
                         tps(), mspt(), (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576,
                         Runtime.getRuntime().maxMemory() / 1048576, Bukkit.getOnlinePlayers().size(), guard.frozenCount(), reduce));
+                s.sendMessage(PREFIX + "Menu mode: " + MenuFactory.mode + " (" + MenuFactory.reason + ")");
             }
             case "clear" -> {
                 String t = a.length > 1 ? a[1].toLowerCase() : "all";
@@ -153,4 +154,4 @@ public final class ZyvenOpti extends JavaPlugin {
         if (a.length == 3 && a[0].equalsIgnoreCase("config")) return new ArrayList<>(getConfig().getKeys(true));
         return List.of();
     }
-}
+                                                     }
