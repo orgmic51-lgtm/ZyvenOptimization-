@@ -144,6 +144,12 @@ public final class ZyvenOpti extends JavaPlugin {
                 };
                 s.sendMessage(PREFIX + "Removed " + r.total() + " entities.");
             }
+            case "ignore" -> {
+                if (!(s instanceof Player pl)) { s.sendMessage(PREFIX + "Players only."); return true; }
+                boolean now = guard.toggleIgnore(pl.getLocation());
+                s.sendMessage(PREFIX + "This chunk is now " + (now ? ChatColor.YELLOW + "IGNORED" : ChatColor.GREEN + "NOT ignored")
+                        + ChatColor.GRAY + " by the lag machine detector.");
+            }
             case "reload" -> { reloadConfig(); applyDistances(); s.sendMessage(PREFIX + "Reloaded."); }
             case "config" -> {
                 if (a.length >= 4 && a[1].equalsIgnoreCase("set")) {
@@ -159,17 +165,17 @@ public final class ZyvenOpti extends JavaPlugin {
                     s.sendMessage(PREFIX + a[2] + " = " + getConfig().get(a[2]));
                 } else s.sendMessage(PREFIX + "/opti config set <path> <value>");
             }
-            default -> s.sendMessage(PREFIX + "/opti [menu|status|clear [items|mobs|projectiles|xp|all]|config set <path> <value>|reload]");
+            default -> s.sendMessage(PREFIX + "/opti [menu|status|clear [items|mobs|projectiles|xp|all]|config set <path> <value>|ignore|reload]");
         }
         return true;
     }
 
     @Override
     public List<String> onTabComplete(CommandSender s, Command c, String l, String[] a) {
-        if (a.length == 1) return List.of("menu", "status", "clear", "config", "reload");
+        if (a.length == 1) return List.of("menu", "status", "clear", "config", "ignore", "reload");
         if (a.length == 2 && a[0].equalsIgnoreCase("clear")) return List.of("items", "mobs", "projectiles", "xp", "all");
         if (a.length == 2 && a[0].equalsIgnoreCase("config")) return List.of("set");
         if (a.length == 3 && a[0].equalsIgnoreCase("config")) return new ArrayList<>(getConfig().getKeys(true));
         return List.of();
     }
-}
+            }
