@@ -11,8 +11,8 @@ import org.bukkit.plugin.Plugin;
 import java.util.*;
 import java.util.function.Consumer;
 
-/** All GUI screens: main, plugin manager, performance, cleanup, redstone, lag machines, config, advanced, help. */
-public final class Menus implements Listener {
+/** Chest GUI (used on 1.21 - 1.21.5): main, plugin manager, performance, cleanup, redstone, lag machines, config, advanced, help. */
+public final class Menus implements Listener, MenuUI {
     static final class Menu implements InventoryHolder {
         final Inventory inv;
         final Map<Integer, Consumer<InventoryClickEvent>> acts = new HashMap<>();
@@ -79,6 +79,7 @@ public final class Menus implements Listener {
     }
 
     // ---------- screens ----------
+    @Override
     public void main(Player pl) {
         Menu m = base("Optimization", 27);
         double tps = p.tps();
@@ -221,7 +222,7 @@ public final class Menus implements Listener {
         pl.openInventory(m.inv);
     }
 
-    private static final String[][] CFG = {
+    static final String[][] CFG = {
             {"cleanup.auto-clear", "Auto clear", "0"}, {"cleanup.minutes", "Minutes between clears", "1"},
             {"cleanup.clear-items", "Clear items", "0"}, {"cleanup.clear-mobs", "Clear mobs", "0"},
             {"cleanup.clear-arrows", "Clear arrows", "0"}, {"cleanup.clear-xp-orbs", "Clear xp orbs", "0"},
@@ -296,4 +297,4 @@ public final class Menus implements Listener {
     public void onDrag(InventoryDragEvent e) {
         if (e.getView().getTopInventory().getHolder() instanceof Menu) e.setCancelled(true);
     }
-          }
+                     }
