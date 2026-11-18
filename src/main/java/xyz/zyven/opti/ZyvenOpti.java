@@ -4,6 +4,7 @@ import org.bukkit.*;
 import org.bukkit.command.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
@@ -14,7 +15,7 @@ public final class ZyvenOpti extends JavaPlugin {
 
     Cleaner cleaner;
     Guard guard;
-    Menus menus;
+    MenuUI menus;
     int reduce = 0, seconds = 0, tick = 0;
     long lastEmergency = 0;
 
@@ -28,9 +29,9 @@ public final class ZyvenOpti extends JavaPlugin {
 
         cleaner = new Cleaner(this);
         guard = new Guard(this);
-        menus = new Menus(this);
+        menus = MenuFactory.create(this);
         getServer().getPluginManager().registerEvents(guard, this);
-        getServer().getPluginManager().registerEvents(menus, this);
+        if (menus instanceof Listener l) getServer().getPluginManager().registerEvents(l, this);
 
         PluginCommand cmd = getCommand("opti");
         if (cmd != null) { cmd.setExecutor(this); cmd.setTabCompleter(this); }
@@ -152,4 +153,4 @@ public final class ZyvenOpti extends JavaPlugin {
         if (a.length == 3 && a[0].equalsIgnoreCase("config")) return new ArrayList<>(getConfig().getKeys(true));
         return List.of();
     }
-        }
+}
