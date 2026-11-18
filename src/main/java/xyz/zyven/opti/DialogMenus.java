@@ -1,3 +1,4 @@
+
 package xyz.zyven.opti;
 
 import io.papermc.paper.dialog.Dialog;
@@ -28,7 +29,7 @@ public final class DialogMenus implements MenuUI {
 
     private final ZyvenOpti p;
 
-    DialogMenus(ZyvenOpti p) { this.p = p; }
+    public DialogMenus(ZyvenOpti p) { this.p = p; }
 
     // ---------- helpers ----------
     private static Component t(String s, NamedTextColor c) { return Component.text(s, c); }
@@ -275,4 +276,4 @@ public final class DialogMenus implements MenuUI {
                 t("/opti reload", WHITE));
         show(pl, "Help", lines, List.of(backBtn()), null);
     }
-                  }
+            }
