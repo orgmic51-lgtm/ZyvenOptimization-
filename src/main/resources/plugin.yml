@@ -11,5 +11,10 @@ commands:
     usage: /opti [menu|status|clear|config|reload]
 permissions:
   zyven.opti.admin:
-    description: Use Zyven Opti
+    description: Use /opti and the Zyven Opti menu
+    default: op
+    children:
+      zyven.opti.alerts: true
+  zyven.opti.alerts:
+    description: Get lag machine / emergency alerts (chat, action bar and sound)
     default: op

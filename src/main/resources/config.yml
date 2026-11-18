@@ -28,7 +28,8 @@ lag-machines:
   freeze-seconds: 300
 announcements:
   announce-lag-machines: true
-  admins-only: true
+  admins-only: true      # true = only players with zyven.opti.alerts get alerts, false = everyone
+  sound: true            # play a sound + action bar when an alert is sent
   show-coordinates: true
 performance:
   adaptive-view: true
