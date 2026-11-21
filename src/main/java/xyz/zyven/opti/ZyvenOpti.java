@@ -14,6 +14,8 @@ public final class ZyvenOpti extends JavaPlugin {
     public static final String PERM = "zyven.opti.admin";
     public static final String ALERT_PERM = "zyven.opti.alerts";
 
+    License license;
+    boolean active = false;
     Cleaner cleaner;
     Guard guard;
     MenuUI menus;
@@ -22,6 +24,18 @@ public final class ZyvenOpti extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        license = new License(this);
+        if (!license.isValid()) {
+            getLogger().severe("=================== ZYVEN OPTIMIZATION ===================");
+            getLogger().severe("No valid license: " + license.status());
+            getLogger().severe("Put your license key in plugins/ZyvenOptimization/license.yml");
+            getLogger().severe("(license_key: \"...\"), save it and restart the server.");
+            getLogger().severe("==========================================================");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        getLogger().info("License OK: " + license.status());
+
         saveDefaultConfig();
         FileConfiguration c = getConfig();
         if (c.getInt("performance.view-distance") <= 0) c.set("performance.view-distance", Bukkit.getViewDistance());
@@ -39,11 +53,13 @@ public final class ZyvenOpti extends JavaPlugin {
 
         getServer().getScheduler().runTaskTimer(this, this::secondTick, 20L, 20L);
         applyDistances();
+        active = true;
         getLogger().info("Zyven Optimization enabled.");
     }
 
     @Override
     public void onDisable() {
+        if (!active) return;
         reduce = 0;
         applyDistances();
     }
@@ -87,6 +103,13 @@ public final class ZyvenOpti extends JavaPlugin {
 
     // ---------- main loop (1/sec) ----------
     private void secondTick() {
+        if (!license.isValid()) {
+            alert(ChatColor.RED + "License expired - Zyven Opti is shutting down.");
+            getLogger().severe("License expired. Put a new key in plugins/ZyvenOptimization/license.yml and restart the server.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         FileConfiguration c = getConfig();
         guard.tick();
         seconds++;
@@ -121,6 +144,7 @@ public final class ZyvenOpti extends JavaPlugin {
     @Override
     public boolean onCommand(CommandSender s, Command cmd, String label, String[] a) {
         if (!s.hasPermission(PERM)) { s.sendMessage(PREFIX + ChatColor.RED + "No permission."); return true; }
+        if (a.length > 0 && a[0].equalsIgnoreCase("license")) { s.sendMessage(PREFIX + "License: " + license.status()); return true; }
         if (a.length == 0 || a[0].equalsIgnoreCase("menu")) {
             if (s instanceof Player pl) menus.main(pl);
             else s.sendMessage(PREFIX + "Use /opti status from console.");
@@ -131,6 +155,7 @@ public final class ZyvenOpti extends JavaPlugin {
                 s.sendMessage(PREFIX + String.format("TPS %.1f | MSPT %.1f | RAM %d/%d MB | Players %d | Frozen chunks %d | View reduce -%d",
                         tps(), mspt(), (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576,
                         Runtime.getRuntime().maxMemory() / 1048576, Bukkit.getOnlinePlayers().size(), guard.frozenCount(), reduce));
+                s.sendMessage(PREFIX + "License: " + license.status());
                 s.sendMessage(PREFIX + "Menu mode: " + MenuFactory.mode + " (" + MenuFactory.reason + ")");
             }
             case "clear" -> {
@@ -150,7 +175,17 @@ public final class ZyvenOpti extends JavaPlugin {
                 s.sendMessage(PREFIX + "This chunk is now " + (now ? ChatColor.YELLOW + "IGNORED" : ChatColor.GREEN + "NOT ignored")
                         + ChatColor.GRAY + " by the lag machine detector.");
             }
-            case "reload" -> { reloadConfig(); applyDistances(); s.sendMessage(PREFIX + "Reloaded."); }
+            case "reload" -> {
+                reloadConfig();
+                license.load();
+                if (!license.isValid()) {
+                    s.sendMessage(PREFIX + ChatColor.RED + license.status() + " - disabling plugin.");
+                    getServer().getPluginManager().disablePlugin(this);
+                    return true;
+                }
+                applyDistances();
+                s.sendMessage(PREFIX + "Reloaded.");
+            }
             case "config" -> {
                 if (a.length >= 4 && a[1].equalsIgnoreCase("set")) {
                     Object old = getConfig().get(a[2]);
@@ -172,10 +207,10 @@ public final class ZyvenOpti extends JavaPlugin {
 
     @Override
     public List<String> onTabComplete(CommandSender s, Command c, String l, String[] a) {
-        if (a.length == 1) return List.of("menu", "status", "clear", "config", "ignore", "reload");
+        if (a.length == 1) return List.of("menu", "status", "clear", "config", "ignore", "license", "reload");
         if (a.length == 2 && a[0].equalsIgnoreCase("clear")) return List.of("items", "mobs", "projectiles", "xp", "all");
         if (a.length == 2 && a[0].equalsIgnoreCase("config")) return List.of("set");
         if (a.length == 3 && a[0].equalsIgnoreCase("config")) return new ArrayList<>(getConfig().getKeys(true));
         return List.of();
     }
-            }
+    }
